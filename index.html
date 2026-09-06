@@ -1,2913 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>African Strike: Air Assault</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mini Chair Jump</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-<style>
-*{
-  box-sizing:border-box;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-tap-highlight-color:transparent;
-}
+    body {
+      background-color: #1a1a24;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      color: #ffffff;
+    }
 
-html,body{
-  margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#101713;
-  font-family:Arial,sans-serif;
-}
+    #game-container {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      max-height: 750px;
+      background: linear-gradient(180deg, #2d1b4e 0%, #1c1033 100%);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      overflow: hidden;
+    }
 
-canvas{
-  display:block;
-  width:100%;
-  height:100%;
-}
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
-.screen{
-  position:fixed;
-  inset:0;
-  z-index:20;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:
-    radial-gradient(circle at center,#293a2b 0,#090d0a 75%);
-}
+    .ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+    }
 
-.panel{
-  width:min(520px,92vw);
-  padding:30px;
-  text-align:center;
-  background:#090d0beF;
-  border:1px solid #806b31;
-  border-radius:18px;
-  box-shadow:0 20px 70px #000;
-}
+    .score-board {
+      text-align: center;
+      font-size: 38px;
+      font-weight: 800;
+      color: #ffd700;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
 
-.logo{
-  font-size:clamp(42px,10vw,72px);
-  font-weight:1000;
-  font-style:italic;
-  color:#eee;
-  line-height:.85;
-}
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 10, 25, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      pointer-events: auto;
+      cursor: pointer;
+    }
 
-.logo span{
-  color:#e8b52e;
-  display:block;
-}
+    .overlay h1 {
+      font-size: 36px;
+      color: #ff4757;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
 
-.subtitle{
-  color:#aeb7aa;
-  letter-spacing:3px;
-  margin:18px 0 28px;
-}
+    .overlay p {
+      font-size: 18px;
+      color: #e0e0e0;
+      margin-bottom: 24px;
+    }
 
-button{
-  border:0;
-  cursor:pointer;
-}
-
-.menuBtn{
-  width:90%;
-  margin:7px;
-  padding:15px;
-  border-radius:9px;
-  background:linear-gradient(#e2b52f,#956315);
-  color:#111;
-  font-weight:1000;
-  font-size:16px;
-}
-
-.menuBtn.dark{
-  background:#182019;
-  color:#fff;
-  border:1px solid #505b4d;
-}
-
-.hidden{
-  display:none!important;
-}
-
-/* HUD */
-
-#hud{
-  position:fixed;
-  top:8px;
-  left:8px;
-  right:8px;
-  z-index:5;
-  display:flex;
-  justify-content:space-between;
-  pointer-events:none;
-  color:white;
-}
-
-.hud{
-  background:#070a08c9;
-  border:1px solid #697050;
-  padding:7px 10px;
-  border-radius:7px;
-  font-size:12px;
-  font-weight:bold;
-}
-
-.health{
-  width:130px;
-  height:8px;
-  background:#30362e;
-  margin-top:4px;
-  border-radius:5px;
-  overflow:hidden;
-}
-
-#healthFill{
-  width:100%;
-  height:100%;
-  background:#55b94a;
-}
-
-/* controls */
-
-#controls{
-  position:fixed;
-  inset:0;
-  z-index:8;
-  pointer-events:none;
-}
-
-.joystick{
-  position:absolute;
-  width:125px;
-  height:125px;
-  border-radius:50%;
-  border:2px solid #ffffff30;
-  background:#ffffff0c;
-  pointer-events:auto;
-  touch-action:none;
-}
-
-#moveStick{
-  left:18px;
-  bottom:18px;
-}
-
-#aimStick{
-  right:18px;
-  bottom:18px;
-}
-
-.knob{
-  position:absolute;
-  left:34px;
-  top:34px;
-  width:54px;
-  height:54px;
-  border-radius:50%;
-  background:#e5b532bb;
-  border:2px solid #ffe79b;
-}
-
-.controlButtons{
-  position:absolute;
-  right:165px;
-  bottom:27px;
-  display:flex;
-  gap:8px;
-  pointer-events:auto;
-}
-
-.action{
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  color:white;
-  background:#111812dd;
-  border:1px solid #ffffff45;
-  font-weight:1000;
-}
-
-.fire{
-  width:76px;
-  height:76px;
-  background:#9d3027;
-  border-color:#ff9c85;
-}
-
-#weaponBox{
-  position:fixed;
-  right:10px;
-  top:65px;
-  z-index:5;
-  color:white;
-  background:#070a08cc;
-  border:1px solid #697050;
-  border-radius:7px;
-  padding:7px 10px;
-  font-size:12px;
-  font-weight:bold;
-}
-
-#missionText{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  top:66px;
-  z-index:5;
-  color:#fff;
-  background:#080c09cc;
-  padding:8px 14px;
-  border:1px solid #6c6846;
-  border-radius:7px;
-  font-weight:bold;
-  font-size:12px;
-}
-
-/* armory */
-
-#armory{
-  position:fixed;
-  inset:0;
-  z-index:30;
-  overflow:auto;
-  background:#080d09;
-  color:white;
-  padding:25px 12px;
-}
-
-.armoryInner{
-  width:min(850px,100%);
-  margin:auto;
-}
-
-.armoryTitle{
-  font-size:34px;
-  font-weight:1000;
-  color:#e8b52e;
-  text-align:center;
-  margin-bottom:20px;
-}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-}
-
-.card{
-  padding:15px;
-  background:#131b15;
-  border:1px solid #414b40;
-  border-radius:10px;
-}
-
-.card.active{
-  border-color:#e8b52e;
-  background:#27240f;
-}
-
-.card button{
-  width:100%;
-  padding:12px;
-  background:none;
-  color:white;
-  text-align:left;
-}
-
-.card b{
-  color:#e8b52e;
-}
-
-.card small{
-  display:block;
-  color:#929c91;
-  margin-top:5px;
-}
-
-@media(max-width:600px){
-  .cards{
-    grid-template-columns:1fr;
-  }
-
-  .controlButtons{
-    right:145px;
-  }
-}
-</style>
+    .btn {
+      background: linear-gradient(45deg, #ff4757, #ff6b81);
+      color: #fff;
+      padding: 14px 32px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+    }
+  </style>
 </head>
-
 <body>
 
-<canvas id="game"></canvas>
-
-<!-- MAIN MENU -->
-
-<div id="menu" class="screen">
-
-  <div class="panel">
-
-    <div class="logo">
-      AFRICAN
-      <span>STRIKE</span>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div class="ui-layer">
+      <div class="score-board" id="scoreDisplay">0</div>
     </div>
-
-    <div class="subtitle">
-      AIR ASSAULT
+    <div class="overlay" id="startMenu">
+      <h1>Mini Chair Jump</h1>
+      <p>Tap/Click to jump over incoming chairs!</p>
+      <div class="btn">Tap to Play</div>
     </div>
-
-    <button class="menuBtn" onclick="startGame()">
-      START MISSION
-    </button>
-
-    <button class="menuBtn dark" onclick="openArmory()">
-      ARMORY
-    </button>
-
   </div>
 
-</div>
-
-
-<!-- ARMORY -->
-
-<div id="armory" class="hidden">
-
-  <div class="armoryInner">
-
-    <div class="armoryTitle">
-      ARMORY
-    </div>
-
-    <h3>CHARACTER</h3>
-
-    <div class="cards">
-
-      <div class="card active" id="maleCard">
-        <button onclick="selectCharacter('male')">
-          <b>COMMANDO</b>
-          <small>Balanced combat soldier</small>
-        </button>
-      </div>
-
-      <div class="card" id="femaleCard">
-        <button onclick="selectCharacter('female')">
-          <b>RECON OPERATIVE</b>
-          <small>Fast and agile</small>
-        </button>
-      </div>
-
-      <div class="card" id="veteranCard">
-        <button onclick="selectCharacter('veteran')">
-          <b>VETERAN</b>
-          <small>Extra health</small>
-        </button>
-      </div>
-
-    </div>
-
-
-    <h3>OUTFIT</h3>
-
-    <div class="cards">
-
-      <div class="card active" id="greenCard">
-        <button onclick="selectOutfit('green')">
-          <b>JUNGLE CAMO</b>
-          <small>Standard combat gear</small>
-        </button>
-      </div>
-
-      <div class="card" id="desertCard">
-        <button onclick="selectOutfit('desert')">
-          <b>DESERT CAMO</b>
-          <small>Desert warfare</small>
-        </button>
-      </div>
-
-      <div class="card" id="blackCard">
-        <button onclick="selectOutfit('black')">
-          <b>BLACK OPS</b>
-          <small>Special operations gear</small>
-        </button>
-      </div>
-
-      <div class="card" id="heavyCard">
-        <button onclick="selectOutfit('heavy')">
-          <b>HEAVY ARMOR</b>
-          <small>More protection</small>
-        </button>
-      </div>
-
-    </div>
-
-
-    <h3>WEAPON</h3>
-
-    <div class="cards">
-
-      <div class="card active" id="rifleCard">
-        <button onclick="selectWeapon('rifle')">
-          <b>ASSAULT RIFLE</b>
-          <small>Balanced automatic weapon</small>
-        </button>
-      </div>
-
-      <div class="card" id="smgCard">
-        <button onclick="selectWeapon('smg')">
-          <b>COMBAT SMG</b>
-          <small>Fast firing</small>
-        </button>
-      </div>
-
-      <div class="card" id="shotgunCard">
-        <button onclick="selectWeapon('shotgun')">
-          <b>TACTICAL SHOTGUN</b>
-          <small>High close-range damage</small>
-        </button>
-      </div>
-
-      <div class="card" id="rocketCard">
-        <button onclick="selectWeapon('rocket')">
-          <b>ROCKET LAUNCHER</b>
-          <small>Explosive projectiles</small>
-        </button>
-      </div>
-
-    </div>
-
-    <br>
-
-    <button
-      class="menuBtn"
-      onclick="closeArmory()">
-      BACK
-    </button>
-
-  </div>
-
-</div>
-
-
-<!-- HUD -->
-
-<div id="hud" class="hidden">
-
-  <div class="hud">
-
-    HEALTH
-
-    <div class="health">
-      <div id="healthFill"></div>
-    </div>
-
-  </div>
-
-  <div class="hud">
-    SCORE:
-    <span id="score">0</span>
-  </div>
-
-  <div class="hud">
-    KILLS:
-    <span id="kills">0</span>
-  </div>
-
-</div>
-
-<div id="weaponBox" class="hidden">
-  WEAPON:
-  <span id="weaponName">ASSAULT RIFLE</span>
-</div>
-
-<div id="missionText" class="hidden">
-  REACH THE ENEMY BASE
-</div>
-
-
-<!-- CONTROLS -->
-
-<div id="controls" class="hidden">
-
-  <div
-    id="moveStick"
-    class="joystick">
-
-    <div class="knob"></div>
-
-  </div>
-
-
-  <div
-    id="aimStick"
-    class="joystick">
-
-    <div class="knob"></div>
-
-  </div>
-
-
-  <div class="controlButtons">
-
-    <button
-      class="action"
-      onclick="jump()">
-      JET
-    </button>
-
-    <button
-      class="action"
-      onclick="switchWeapon()">
-      GUN
-    </button>
-
-    <button
-      class="action fire"
-      onclick="shoot()">
-      FIRE
-    </button>
-
-  </div>
-
-</div>
-
-
-<script>
-
-const canvas =
-document.getElementById("game");
-
-const ctx =
-canvas.getContext("2d");
-
-let W,H;
-
-function resize(){
-
-  W =
-    canvas.width =
-    innerWidth *
-    devicePixelRatio;
-
-  H =
-    canvas.height =
-    innerHeight *
-    devicePixelRatio;
-
-  canvas.style.width =
-    innerWidth+"px";
-
-  canvas.style.height =
-    innerHeight+"px";
-
-  ctx.setTransform(
-    devicePixelRatio,
-    0,
-    0,
-    devicePixelRatio,
-    0,
-    0
-  );
-
-  W = innerWidth;
-  H = innerHeight;
-
-}
-
-addEventListener(
-  "resize",
-  resize
-);
-
-resize();
-
-
-/* ==============================
-   SAVE
-============================== */
-
-let save =
-JSON.parse(
-  localStorage.getItem(
-    "AFRICAN_STRIKE_AIR"
-  ) || "null"
-) || {
-
-  character:"male",
-  outfit:"green",
-  weapon:"rifle",
-  missions:0,
-  coins:1000
-
-};
-
-function saveGame(){
-
-  localStorage.setItem(
-    "AFRICAN_STRIKE_AIR",
-    JSON.stringify(save)
-  );
-
-}
-
-
-/* ==============================
-   SETTINGS
-============================== */
-
-const weapons = {
-
-  rifle:{
-    name:"ASSAULT RIFLE",
-    damage:22,
-    speed:18,
-    cooldown:160
-  },
-
-  smg:{
-    name:"COMBAT SMG",
-    damage:13,
-    speed:21,
-    cooldown:90
-  },
-
-  shotgun:{
-    name:"TACTICAL SHOTGUN",
-    damage:15,
-    speed:17,
-    cooldown:420
-  },
-
-  rocket:{
-    name:"ROCKET LAUNCHER",
-    damage:75,
-    speed:10,
-    cooldown:700
-  }
-
-};
-
-let player;
-
-let enemies=[];
-
-let bullets=[];
-
-let particles=[];
-
-let buildings=[];
-
-let running=false;
-
-let score=0;
-
-let kills=0;
-
-let cameraX=0;
-
-let worldWidth=6000;
-
-let spawnTimer=0;
-
-let lastShot=0;
-
-let gameOver=false;
-
-let moveX=0;
-
-let moveY=0;
-
-let aimX=1;
-
-let aimY=0;
-
-
-/* ==============================
-   CHARACTER
-============================== */
-
-function selectCharacter(v){
-
-  save.character=v;
-
-  document
-  .querySelectorAll(
-    ".cards .card"
-  )
-  .forEach(c =>
-    c.classList.remove("active")
-  );
-
-  document
-  .getElementById(
-    v+"Card"
-  )
-  ?.classList.add("active");
-
-  saveGame();
-
-}
-
-function selectOutfit(v){
-
-  save.outfit=v;
-
-  document
-  .querySelectorAll(
-    "#greenCard,#desertCard,#blackCard,#heavyCard"
-  )
-  .forEach(c =>
-    c.classList.remove("active")
-  );
-
-  document
-  .getElementById(
-    v+"Card"
-  )
-  .classList.add("active");
-
-  saveGame();
-
-}
-
-function selectWeapon(v){
-
-  save.weapon=v;
-
-  document
-  .querySelectorAll(
-    "#rifleCard,#smgCard,#shotgunCard,#rocketCard"
-  )
-  .forEach(c =>
-    c.classList.remove("active")
-  );
-
-  document
-  .getElementById(
-    v+"Card"
-  )
-  .classList.add("active");
-
-  saveGame();
-
-}
-
-
-/* ==============================
-   MENU
-============================== */
-
-function openArmory(){
-
-  document
-  .getElementById("menu")
-  .classList.add("hidden");
-
-  document
-  .getElementById("armory")
-  .classList.remove("hidden");
-
-}
-
-function closeArmory(){
-
-  document
-  .getElementById("armory")
-  .classList.add("hidden");
-
-  document
-  .getElementById("menu")
-  .classList.remove("hidden");
-
-}
-
-
-/* ==============================
-   WORLD
-============================== */
-
-function createWorld(){
-
-  buildings=[];
-
-  for(
-    let x=250;
-    x<worldWidth;
-    x+=
-      250+
-      Math.random()*350
-  ){
-
-    buildings.push({
-
-      x,
-
-      y:
-        H*.60 -
-        70 -
-        Math.random()*80,
-
-      w:
-        100+
-        Math.random()*130,
-
-      h:
-        70+
-        Math.random()*130
-
-    });
-
-  }
-
-}
-
-
-/* ==============================
-   PLAYER
-============================== */
-
-function createPlayer(){
-
-  player={
-
-    x:250,
-
-    y:H*.55,
-
-    vx:0,
-
-    vy:0,
-
-    width:34,
-
-    height:62,
-
-    health:
-      save.outfit==="heavy"
-      ? 140
-      : save.character==="veteran"
-      ? 120
-      : 100,
-
-    maxHealth:
-      save.outfit==="heavy"
-      ? 140
-      : save.character==="veteran"
-      ? 120
-      : 100,
-
-    onGround:false,
-
-    jet:false
-
-  };
-
-}
-
-
-/* ==============================
-   DRAW BACKGROUND
-============================== */
-
-function drawBackground(){
-
-  /* sky */
-
-  let sky =
-  ctx.createLinearGradient(
-    0,0,0,H
-  );
-
-  sky.addColorStop(
-    0,
-    "#536a62"
-  );
-
-  sky.addColorStop(
-    .55,
-    "#a59b71"
-  );
-
-  sky.addColorStop(
-    1,
-    "#293321"
-  );
-
-  ctx.fillStyle=sky;
-
-  ctx.fillRect(
-    0,0,W,H
-  );
-
-
-  /* sun */
-
-  ctx.fillStyle="#f4d58b";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    W*.78,
-    H*.18,
-    45,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /* distant hills */
-
-  ctx.fillStyle="#34462e";
-
-  ctx.beginPath();
-
-  ctx.moveTo(0,H*.56);
-
-  for(
-    let x=0;
-    x<=W;
-    x+=100
-  ){
-
-    ctx.lineTo(
-      x,
-      H*.47+
-      Math.sin(
-        (x+cameraX*.08)/
-        180
-      )*55
-    );
-
-  }
-
-  ctx.lineTo(W,H);
-
-  ctx.lineTo(0,H);
-
-  ctx.fill();
-
-
-  /* closer hills */
-
-  ctx.fillStyle="#273923";
-
-  ctx.beginPath();
-
-  ctx.moveTo(0,H*.68);
-
-  for(
-    let x=0;
-    x<=W;
-    x+=80
-  ){
-
-    ctx.lineTo(
-      x,
-      H*.60+
-      Math.sin(
-        (x+cameraX*.16)/
-        110
-      )*38
-    );
-
-  }
-
-  ctx.lineTo(W,H);
-
-  ctx.lineTo(0,H);
-
-  ctx.fill();
-
-
-  /* ground */
-
-  ctx.fillStyle="#574a2e";
-
-  ctx.fillRect(
-    0,
-    H*.70,
-    W,
-    H*.30
-  );
-
-
-  /* grass */
-
-  ctx.strokeStyle="#6f713e";
-
-  ctx.lineWidth=2;
-
-  for(
-    let x=0;
-    x<W;
-    x+=18
-  ){
-
-    let gx =
-      x -
-      (cameraX*.4%18);
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      gx,
-      H*.70
-    );
-
-    ctx.lineTo(
-      gx+4,
-      H*.67
-    );
-
-    ctx.stroke();
-
-  }
-
-
-  /* trees */
-
-  for(
-    let x=-100;
-    x<worldWidth;
-    x+=260
-  ){
-
-    let sx =
-      x-cameraX*.35;
-
-    if(
-      sx<-100 ||
-      sx>W+100
-    )
-      continue;
-
-    drawTree(
-      sx,
-      H*.70
-    );
-
-  }
-
-
-  /* buildings */
-
-  for(
-    const b of buildings
-  ){
-
-    let sx =
-      b.x-cameraX;
-
-    if(
-      sx<-200 ||
-      sx>W+200
-    )
-      continue;
-
-    drawBuilding(
-      sx,
-      b.y,
-      b.w,
-      b.h
-    );
-
-  }
-
-}
-
-
-function drawTree(
-  x,
-  y
-){
-
-  ctx.fillStyle="#443725";
-
-  ctx.fillRect(
-    x-7,
-    y-100,
-    14,
-    100
-  );
-
-
-  ctx.fillStyle="#243d25";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x,
-    y-115,
-    48,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.fillStyle="#31502b";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x-30,
-    y-95,
-    30,
-    0,
-    Math.PI*2
-  );
-
-  ctx.arc(
-    x+28,
-    y-94,
-    30,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-}
-
-
-function drawBuilding(
-  x,y,w,h
-){
-
-  ctx.fillStyle="#776c58";
-
-  ctx.fillRect(
-    x,
-    y,
-    w,
-    h
-  );
-
-
-  ctx.fillStyle="#3b342c";
-
-  ctx.fillRect(
-    x-8,
-    y-12,
-    w+16,
-    15
-  );
-
-
-  ctx.fillStyle="#171b18";
-
-  for(
-    let wx=x+20;
-    wx<x+w-10;
-    wx+=42
-  ){
-
-    ctx.fillRect(
-      wx,
-      y+25,
-      18,
-      27
-    );
-
-  }
-
-}
-
-
-/* ==============================
-   PLAYER DRAWING
-============================== */
-
-function drawPlayer(){
-
-  let x =
-    player.x-cameraX;
-
-  let y =
-    player.y;
-
-
-  ctx.save();
-
-  ctx.translate(
-    x,
-    y
-  );
-
-
-  /* shadow */
-
-  ctx.fillStyle="#0006";
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    0,
-    38,
-    28,
-    7,
-    0,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /* jet flame */
-
-  if(player.jet){
-
-    let flame =
-      20+
-      Math.random()*20;
-
-    ctx.fillStyle="#ffb52b";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      -8,
-      32
-    );
-
-    ctx.lineTo(
-      0,
-      32+flame
-    );
-
-    ctx.lineTo(
-      8,
-      32
-    );
-
-    ctx.fill();
-
-    ctx.fillStyle="#fff0a0";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      -4,
-      32
-    );
-
-    ctx.lineTo(
-      0,
-      32+flame*.65
-    );
-
-    ctx.lineTo(
-      4,
-      32
-    );
-
-    ctx.fill();
-
-  }
-
-
-  let uniform =
-    save.outfit==="desert"
-    ? "#8d7956"
-    : save.outfit==="black"
-    ? "#1c2420"
-    : save.outfit==="heavy"
-    ? "#29312d"
-    : "#465b3d";
-
-
-  /* legs */
-
-  ctx.fillStyle=uniform;
-
-  ctx.fillRect(
-    -16,
-    5,
-    13,
-    30
-  );
-
-  ctx.fillRect(
-    3,
-    5,
-    13,
-    30
-  );
-
-
-  /* boots */
-
-  ctx.fillStyle="#171917";
-
-  ctx.fillRect(
-    -18,
-    31,
-    17,
-    7
-  );
-
-  ctx.fillRect(
-    2,
-    31,
-    17,
-    7
-  );
-
-
-  /* body */
-
-  ctx.fillStyle=uniform;
-
-  ctx.fillRect(
-    -19,
-    -36,
-    38,
-    43
-  );
-
-
-  /* vest */
-
-  ctx.fillStyle="#303832";
-
-  ctx.fillRect(
-    -21,
-    -30,
-    42,
-    25
-  );
-
-
-  /* arms */
-
-  ctx.fillStyle=uniform;
-
-  ctx.save();
-
-  ctx.translate(
-    16,
-    -22
-  );
-
-  ctx.rotate(
-    -.45
-  );
-
-  ctx.fillRect(
-    -3,
-    0,
-    10,
-    34
-  );
-
-  ctx.restore();
-
-
-  ctx.save();
-
-  ctx.translate(
-    -16,
-    -22
-  );
-
-  ctx.rotate(
-    .45
-  );
-
-  ctx.fillRect(
-    -7,
-    0,
-    10,
-    34
-  );
-
-  ctx.restore();
-
-
-  /* head */
-
-  ctx.fillStyle=
-    save.character==="female"
-    ? "#8a5742"
-    : "#71452f";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    0,
-    -49,
-    15,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /* helmet */
-
-  ctx.fillStyle="#1c251f";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    0,
-    -54,
-    18,
-    Math.PI,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-  ctx.fillRect(
-    -18,
-    -55,
-    36,
-    8
-  );
-
-
-  /* weapon */
-
-  let gunLength =
-    save.weapon==="shotgun"
-    ? 42
-    : save.weapon==="rocket"
-    ? 50
-    : 48;
-
-  ctx.strokeStyle="#101411";
-
-  ctx.lineWidth=
-    save.weapon==="rocket"
-    ? 9
-    : 6;
-
-  let angle =
-    Math.atan2(
-      aimY,
-      aimX
-    );
-
-  ctx.save();
-
-  ctx.translate(
-    8,
-    -20
-  );
-
-  ctx.rotate(
-    angle
-  );
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    -5,
-    0
-  );
-
-  ctx.lineTo(
-    gunLength,
-    0
-  );
-
-  ctx.stroke();
-
-  ctx.restore();
-
-
-  ctx.restore();
-
-}
-
-
-/* ==============================
-   ENEMY
-============================== */
-
-function spawnEnemy(){
-
-  let e={
-
-    x:
-      player.x+
-      W+
-      100+
-      Math.random()*500,
-
-    y:
-      H*.45+
-      Math.random()*130,
-
-    vx:
-      -1.1-
-      Math.random()*1.3,
-
-    vy:0,
-
-    health:
-      Math.random()<.2
-      ? 90
-      : 50,
-
-    maxHealth:
-      50,
-
-    cool:
-      800+
-      Math.random()*1500,
-
-    heavy:
-      Math.random()<.2
-
-  };
-
-  if(e.heavy)
-    e.maxHealth=90;
-
-  enemies.push(e);
-
-}
-
-
-function drawEnemy(e){
-
-  let x =
-    e.x-cameraX;
-
-  let y =
-    e.y;
-
-
-  if(
-    x<-100 ||
-    x>W+100
-  )
-    return;
-
-
-  ctx.save();
-
-  ctx.translate(
-    x,
-    y
-  );
-
-
-  /* shadow */
-
-  ctx.fillStyle="#0005";
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    0,
-    38,
-    25,
-    6,
-    0,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /* legs */
-
-  ctx.fillStyle=
-    e.heavy
-    ? "#252a28"
-    : "#343d32";
-
-  ctx.fillRect(
-    -14,
-    5,
-    11,
-    30
-  );
-
-  ctx.fillRect(
-    3,
-    5,
-    11,
-    30
-  );
-
-
-  /* body */
-
-  ctx.fillRect(
-    -18,
-    -35,
-    36,
-    43
-  );
-
-
-  /* head */
-
-  ctx.fillStyle="#5e3c2e";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    0,
-    -47,
-    14,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /* helmet */
-
-  ctx.fillStyle="#151916";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    0,
-    -52,
-    17,
-    Math.PI,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /* weapon */
-
-  ctx.strokeStyle="#0d100e";
-
-  ctx.lineWidth=6;
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    -8,
-    -20
-  );
-
-  ctx.lineTo(
-    -45,
-    -18
-  );
-
-  ctx.stroke();
-
-
-  /* health */
-
-  ctx.fillStyle="#252a24";
-
-  ctx.fillRect(
-    -22,
-    -72,
-    44,
-    5
-  );
-
-  ctx.fillStyle=
-    e.heavy
-    ? "#e4a82d"
-    : "#51b54a";
-
-  ctx.fillRect(
-    -22,
-    -72,
-    44*
-    Math.max(
-      0,
-      e.health/e.maxHealth
-    ),
-    5
-  );
-
-
-  ctx.restore();
-
-}
-
-
-/* ==============================
-   BULLETS
-============================== */
-
-function shoot(){
-
-  if(!running)
-    return;
-
-  let now=
-    performance.now();
-
-  let w=
-    weapons[save.weapon];
-
-  if(
-    now-lastShot<
-    w.cooldown
-  )
-    return;
-
-  lastShot=now;
-
-
-  let angle=
-    Math.atan2(
-      aimY,
-      aimX
-    );
-
-
-  if(save.weapon==="shotgun"){
-
-    for(
-      let i=-2;
-      i<=2;
-      i++
-    ){
-
-      makeBullet(
-        angle+i*.12,
-        w
-      );
-
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const startMenu = document.getElementById('startMenu');
+
+    let width, height;
+    function resize() {
+      const container = document.getElementById('game-container');
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Game variables
+    let gameActive = false;
+    let score = 0;
+    let frameCount = 0;
+    let speed = 4;
+    let groundY = 0;
+
+    const player = {
+      x: 60,
+      y: 0,
+      radius: 18,
+      velocityY: 0,
+      gravity: 0.65,
+      jumpForce: -12,
+      isGrounded: false
+    };
+
+    let chairs = [];
+
+    function resetGame() {
+      groundY = height - 80;
+      player.y = groundY - player.radius;
+      player.velocityY = 0;
+      player.isGrounded = true;
+      chairs = [];
+      score = 0;
+      speed = 4.5;
+      frameCount = 0;
+      scoreDisplay.innerText = score;
     }
 
-  }else{
-
-    makeBullet(
-      angle,
-      w
-    );
-
-  }
-
-}
-
-
-function makeBullet(
-  angle,
-  w
-){
-
-  bullets.push({
-
-    x:player.x+25,
-
-    y:player.y-20,
-
-    vx:
-      Math.cos(angle)*
-      w.speed,
-
-    vy:
-      Math.sin(angle)*
-      w.speed,
-
-    damage:w.damage,
-
-    rocket:
-      save.weapon==="rocket",
-
-    life:150
-
-  });
-
-
-  particles.push({
-
-    x:player.x+25,
-
-    y:player.y-20,
-
-    vx:Math.random()*2,
-
-    vy:(Math.random()-.5)*2,
-
-    life:12,
-
-    color:"#ffb32b"
-
-  });
-
-}
-
-
-/* ==============================
-   PARTICLES
-============================== */
-
-function explosion(
-  x,
-  y
-){
-
-  for(
-    let i=0;
-    i<20;
-    i++
-  ){
-
-    let a=
-      Math.random()*
-      Math.PI*2;
-
-    let s=
-      1+
-      Math.random()*5;
-
-    particles.push({
-
-      x,
-
-      y,
-
-      vx:
-        Math.cos(a)*s,
-
-      vy:
-        Math.sin(a)*s,
-
-      life:
-        20+
-        Math.random()*30,
-
-      color:
-        Math.random()<.5
-        ? "#ff9f22"
-        : "#77736a"
-
-    });
-
-  }
-
-}
-
-
-/* ==============================
-   UPDATE
-============================== */
-
-function update(){
-
-  if(!running)
-    return;
-
-
-  /* player movement */
-
-  player.vx =
-    moveX*5.5;
-
-
-  player.x +=
-    player.vx;
-
-
-  player.x =
-    Math.max(
-      50,
-      Math.min(
-        worldWidth-150,
-        player.x
-      )
-    );
-
-
-  /* gravity */
-
-  player.vy +=
-    .45;
-
-
-  if(player.jet){
-
-    player.vy -=
-      1.15;
-
-  }
-
-
-  player.y +=
-    player.vy;
-
-
-  let ground=
-    H*.70;
-
-
-  if(
-    player.y+40>=ground
-  ){
-
-    player.y=
-      ground-40;
-
-    player.vy=0;
-
-  }
-
-
-  /* camera */
-
-  cameraX +=
-    (
-      player.x-
-      cameraX-
-      W*.35
-    )*.08;
-
-
-  cameraX=
-    Math.max(
-      0,
-      Math.min(
-        worldWidth-W,
-        cameraX
-      )
-    );
-
-
-  /* enemies */
-
-  spawnTimer--;
-
-  if(
-    spawnTimer<=0 &&
-    enemies.length<10
-  ){
-
-    spawnEnemy();
-
-    spawnTimer=
-      50+
-      Math.random()*80;
-
-  }
-
-
-  for(
-    let i=enemies.length-1;
-    i>=0;
-    i--
-  ){
-
-    let e=
-      enemies[i];
-
-
-    e.x +=
-      e.vx;
-
-
-    /* enemy follows player vertically */
-
-    if(
-      e.y<
-      player.y-10
-    )
-      e.vy+=.15;
-
-    if(
-      e.y>
-      player.y+10
-    )
-      e.vy-=.15;
-
-
-    e.vy=
-      Math.max(
-        -3,
-        Math.min(
-          3,
-          e.vy
-        )
-      );
-
-
-    e.y+=e.vy;
-
-
-    e.cool-=16;
-
-
-    if(
-      e.cool<=0 &&
-      Math.abs(
-        e.x-player.x
-      )<650
-    ){
-
-      enemyShoot(e);
-
-      e.cool=
-        1000+
-        Math.random()*1500;
-
+    function spawnChair() {
+      const isTall = Math.random() > 0.5;
+      const chairWidth = 32;
+      const chairHeight = isTall ? 48 : 34;
+
+      chairs.push({
+        x: width + 20,
+        y: groundY - chairHeight,
+        width: chairWidth,
+        height: chairHeight,
+        passed: false
+      });
     }
 
-
-    if(
-      Math.abs(
-        e.x-player.x
-      )<35 &&
-      Math.abs(
-        e.y-player.y
-      )<60
-    ){
-
-      player.health-=.35;
-
+    function jump() {
+      if (player.isGrounded && gameActive) {
+        player.velocityY = player.jumpForce;
+        player.isGrounded = false;
+      }
     }
 
+    function update() {
+      if (!gameActive) return;
 
-    if(
-      e.health<=0
-    ){
+      frameCount++;
 
-      explosion(
-        e.x,
-        e.y
-      );
-
-      enemies.splice(
-        i,
-        1
-      );
-
-      score+=
-        e.heavy
-        ? 300
-        : 100;
-
-      kills++;
-
-    }
-
-  }
-
-
-  /* bullets */
-
-  for(
-    let i=bullets.length-1;
-    i>=0;
-    i--
-  ){
-
-    let b=
-      bullets[i];
-
-
-    b.x+=b.vx;
-
-    b.y+=b.vy;
-
-    b.life--;
-
-
-    for(
-      let j=enemies.length-1;
-      j>=0;
-      j--
-    ){
-
-      let e=
-        enemies[j];
-
-
-      if(
-        Math.abs(
-          b.x-e.x
-        )<28 &&
-        Math.abs(
-          b.y-e.y
-        )<55
-      ){
-
-        e.health-=
-          b.damage;
-
-
-        if(b.rocket)
-          explosion(
-            e.x,
-            e.y
-          );
-
-
-        bullets.splice(
-          i,
-          1
-        );
-
-        break;
-
+      // Increase speed gradually over time
+      if (frameCount % 400 === 0) {
+        speed += 0.3;
       }
 
-    }
-
-
-    if(
-      b.life<=0 ||
-      b.x>
-      player.x+W
-    ){
-
-      bullets.splice(
-        i,
-        1
-      );
-
-    }
-
-  }
-
-
-  /* particles */
-
-  for(
-    let i=particles.length-1;
-    i>=0;
-    i--
-  ){
-
-    let p=
-      particles[i];
-
-    p.x+=p.vx;
-
-    p.y+=p.vy;
-
-    p.vy+=.05;
-
-    p.life--;
-
-    if(
-      p.life<=0
-    )
-      particles.splice(
-        i,
-        1
-      );
-
-  }
-
-
-  /* health */
-
-  document
-  .getElementById(
-    "healthFill"
-  )
-  .style.width=
-    Math.max(
-      0,
-      player.health/
-      player.maxHealth*
-      100
-    )+"%";
-
-
-  document
-  .getElementById(
-    "score"
-  )
-  .textContent=
-    score;
-
-
-  document
-  .getElementById(
-    "kills"
-  )
-  .textContent=
-    kills;
-
-
-  /* mission complete */
-
-  if(
-    player.x>
-    worldWidth-300
-  ){
-
-    finishMission();
-
-  }
-
-
-  if(
-    player.health<=0
-  ){
-
-    finishMission(true);
-
-  }
-
-}
-
-
-/* ==============================
-   ENEMY SHOOTING
-============================== */
-
-function enemyShoot(e){
-
-  let dx=
-    player.x-e.x;
-
-  let dy=
-    player.y-e.y;
-
-
-  let d=
-    Math.hypot(
-      dx,
-      dy
-    );
-
-
-  if(!d)
-    return;
-
-
-  enemyBullets.push({
-
-    x:e.x,
-
-    y:e.y-20,
-
-    vx:
-      dx/d*7,
-
-    vy:
-      dy/d*7,
-
-    life:120
-
-  });
-
-}
-
-
-/* ==============================
-   ENEMY BULLETS
-============================== */
-
-let enemyBullets=[];
-
-
-function updateEnemyBullets(){
-
-  for(
-    let i=enemyBullets.length-1;
-    i>=0;
-    i--
-  ){
-
-    let b=
-      enemyBullets[i];
-
-
-    b.x+=b.vx;
-
-    b.y+=b.vy;
-
-    b.life--;
-
-
-    if(
-      Math.abs(
-        b.x-player.x
-      )<20 &&
-      Math.abs(
-        b.y-player.y
-      )<45
-    ){
-
-      player.health-=8;
-
-      enemyBullets.splice(
-        i,
-        1
-      );
-
-      continue;
-
-    }
-
-
-    if(
-      b.life<=0
-    ){
-
-      enemyBullets.splice(
-        i,
-        1
-      );
-
-    }
-
-  }
-
-}
-
-
-/* ==============================
-   DRAW
-============================== */
-
-function draw(){
-
-  ctx.clearRect(
-    0,
-    0,
-    W,
-    H
-  );
-
-
-  drawBackground();
-
-
-  /* bullets */
-
-  for(
-    const b of bullets
-  ){
-
-    let x=
-      b.x-cameraX;
-
-    ctx.strokeStyle=
-      b.rocket
-      ? "#ff8b22"
-      : "#ffe08a";
-
-    ctx.lineWidth=
-      b.rocket
-      ? 8
-      : 3;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      x,
-      b.y
-    );
-
-    ctx.lineTo(
-      x-b.vx*1.4,
-      b.y-b.vy*1.4
-    );
-
-    ctx.stroke();
-
-  }
-
-
-  /* enemy bullets */
-
-  for(
-    const b of enemyBullets
-  ){
-
-    ctx.fillStyle="#ffdf73";
-
-    ctx.beginPath();
-
-    ctx.arc(
-      b.x-cameraX,
-      b.y,
-      3,
-      0,
-      Math.PI*2
-    );
-
-    ctx.fill();
-
-  }
-
-
-  for(
-    const e of enemies
-  )
-    drawEnemy(e);
-
-
-  drawPlayer();
-
-
-  for(
-    const p of particles
-  ){
-
-    ctx.globalAlpha=
-      Math.max(
-        0,
-        p.life/30
-      );
-
-    ctx.fillStyle=
-      p.color;
-
-    ctx.fillRect(
-      p.x-cameraX,
-      p.y,
-      5,
-      5
-    );
-
-  }
-
-  ctx.globalAlpha=1;
-
-}
-
-
-/* ==============================
-   GAME LOOP
-============================== */
-
-function loop(){
-
-  update();
-
-  updateEnemyBullets();
-
-  draw();
-
-  if(running)
-    requestAnimationFrame(
-      loop
-    );
-
-}
-
-
-/* ==============================
-   START
-============================== */
-
-function startGame(){
-
-  document
-  .getElementById("menu")
-  .classList.add("hidden");
-
-  document
-  .getElementById("armory")
-  .classList.add("hidden");
-
-  document
-  .getElementById("hud")
-  .classList.remove("hidden");
-
-  document
-  .getElementById("controls")
-  .classList.remove("hidden");
-
-  document
-  .getElementById("weaponBox")
-  .classList.remove("hidden");
-
-  document
-  .getElementById("missionText")
-  .classList.remove("hidden");
-
-
-  document
-  .getElementById("weaponName")
-  .textContent=
-    weapons[
-      save.weapon
-    ].name;
-
-
-  score=0;
-
-  kills=0;
-
-  cameraX=0;
-
-  enemies=[];
-
-  bullets=[];
-
-  enemyBullets=[];
-
-  particles=[];
-
-  createWorld();
-
-  createPlayer();
-
-  running=true;
-
-  gameOver=false;
-
-  loop();
-
-}
-
-
-/* ==============================
-   MISSION END
-============================== */
-
-function finishMission(failed=false){
-
-  if(gameOver)
-    return;
-
-  gameOver=true;
-
-  running=false;
-
-
-  document
-  .getElementById("hud")
-  .classList.add("hidden");
-
-  document
-  .getElementById("controls")
-  .classList.add("hidden");
-
-  document
-  .getElementById("weaponBox")
-  .classList.add("hidden");
-
-  document
-  .getElementById("missionText")
-  .classList.add("hidden");
-
-
-  if(!failed){
-
-    save.missions++;
-
-    save.coins+=
-      500+
-      kills*50;
-
-    saveGame();
-
-
-    document
-    .getElementById("menu")
-    .classList.remove("hidden");
-
-
-    alert(
-      "MISSION COMPLETE!\n\n"+
-      "Kills: "+kills+
-      "\nScore: "+score+
-      "\nReward: "+(500+kills*50)+" coins"
-    );
-
-  }else{
-
-    document
-    .getElementById("menu")
-    .classList.remove("hidden");
-
-
-    alert(
-      "MISSION FAILED!\n\n"+
-      "Kills: "+kills+
-      "\nScore: "+score+
-      "\n\nReturn to the Armory and change your loadout."
-    );
-
-  }
-
-}
-
-
-/* ==============================
-   JETPACK
-============================== */
-
-function jump(){
-
-  if(!running)
-    return;
-
-  player.jet=true;
-
-  setTimeout(
-    ()=>{
-      player.jet=false;
-    },
-    350
-  );
-
-}
-
-
-/* ==============================
-   WEAPON SWITCH
-============================== */
-
-function switchWeapon(){
-
-  const list=
-    [
-      "rifle",
-      "smg",
-      "shotgun",
-      "rocket"
-    ];
-
-  let i=
-    list.indexOf(
-      save.weapon
-    );
-
-  i=
-    (i+1)%list.length;
-
-  save.weapon=
-    list[i];
-
-  document
-  .getElementById(
-    "weaponName"
-  )
-  .textContent=
-    weapons[
-      save.weapon
-    ].name;
-
-  saveGame();
-
-}
-
-
-/* ==============================
-   JOYSTICKS
-============================== */
-
-function setupStick(
-  id,
-  type
-){
-
-  const el=
-    document.getElementById(id);
-
-  const knob=
-    el.querySelector(".knob");
-
-  let active=false;
-
-
-  function getPoint(e){
-
-    return e.touches
-      ? e.touches[0]
-      : e;
-
-  }
-
-
-  function move(e){
-
-    if(!active)
-      return;
-
-
-    let p=
-      getPoint(e);
-
-    let r=
-      el.getBoundingClientRect();
-
-
-    let dx=
-      p.clientX-
-      (
-        r.left+
-        r.width/2
-      );
-
-    let dy=
-      p.clientY-
-      (
-        r.top+
-        r.height/2
-      );
-
-
-    let max=43;
-
-    let d=
-      Math.hypot(
-        dx,
-        dy
-      );
-
-
-    if(d>max){
-
-      dx=
-        dx/d*max;
-
-      dy=
-        dy/d*max;
-
-    }
-
-
-    knob.style.transform=
-      `translate(${dx}px,${dy}px)`;
-
-
-    if(type==="move"){
-
-      moveX=
-        dx/max;
-
-      moveY=
-        dy/max;
-
-    }else{
-
-      aimX=
-        dx/max;
-
-      aimY=
-        dy/max;
-
-
-      if(
-        Math.hypot(
-          aimX,
-          aimY
-        )<.15
-      ){
-
-        aimX=1;
-        aimY=0;
-
+      // Physics update
+      player.velocityY += player.gravity;
+      player.y += player.velocityY;
+
+      // Ground check
+      if (player.y >= groundY - player.radius) {
+        player.y = groundY - player.radius;
+        player.velocityY = 0;
+        player.isGrounded = true;
       }
 
+      // Chair spawning timing
+      if (frameCount % Math.max(70, Math.floor(130 - speed * 5)) === 0) {
+        if (Math.random() > 0.2) spawnChair();
+      }
+
+      // Update chairs
+      for (let i = chairs.length - 1; i >= 0; i--) {
+        let c = chairs[i];
+        c.x -= speed;
+
+        // Score tracking
+        if (!c.passed && c.x + c.width < player.x) {
+          c.passed = true;
+          score++;
+          scoreDisplay.innerText = score;
+        }
+
+        // Collision detection (Circle to Box)
+        let closestX = Math.max(c.x, Math.min(player.x, c.x + c.width));
+        let closestY = Math.max(c.y, Math.min(player.y, c.y + c.height));
+        let distX = player.x - closestX;
+        let distY = player.y - closestY;
+        let distance = Math.sqrt((distX * distX) + (distY * distY));
+
+        if (distance < player.radius - 2) {
+          gameOver();
+        }
+
+        // Remove offscreen chairs
+        if (c.x + c.width < -50) {
+          chairs.splice(i, 1);
+        }
+      }
     }
 
-    e.preventDefault();
-
-  }
-
-
-  function end(){
-
-    active=false;
-
-    knob.style.transform=
-      "translate(0,0)";
-
-
-    if(type==="move"){
-
-      moveX=0;
-      moveY=0;
-
+    function drawChair(c) {
+      ctx.fillStyle = '#ff4757';
+      // Seat
+      ctx.fillRect(c.x, c.y + c.height * 0.4, c.width, 6);
+      // Backrest
+      ctx.fillRect(c.x + 2, c.y, 6, c.height * 0.4);
+      // Legs
+      ctx.fillRect(c.x + 2, c.y + c.height * 0.4, 4, c.height * 0.6);
+      ctx.fillRect(c.x + c.width - 6, c.y + c.height * 0.4, 4, c.height * 0.6);
     }
 
-  }
+    function render() {
+      ctx.clearRect(0, 0, width, height);
 
+      // Draw Floor Line
+      ctx.strokeStyle = '#5352ed';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(width, groundY);
+      ctx.stroke();
 
-  el.addEventListener(
-    "touchstart",
-    e=>{
-      active=true;
-      move(e);
-    },
-    {passive:false}
-  );
+      // Floor Fill
+      ctx.fillStyle = '#140c26';
+      ctx.fillRect(0, groundY, width, height - groundY);
 
+      // Draw Chairs
+      chairs.forEach(drawChair);
 
-  el.addEventListener(
-    "touchmove",
-    move,
-    {passive:false}
-  );
+      // Draw Player
+      ctx.fillStyle = '#2ed573';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
 
-
-  el.addEventListener(
-    "touchend",
-    end
-  );
-
-}
-
-
-setupStick(
-  "moveStick",
-  "move"
-);
-
-setupStick(
-  "aimStick",
-  "aim"
-);
-
-
-/* ==============================
-   KEYBOARD SUPPORT
-============================== */
-
-addEventListener(
-  "keydown",
-  e=>{
-
-    if(
-      e.key==="a" ||
-      e.key==="ArrowLeft"
-    )
-      moveX=-1;
-
-
-    if(
-      e.key==="d" ||
-      e.key==="ArrowRight"
-    )
-      moveX=1;
-
-
-    if(
-      e.key==="w" ||
-      e.key==="ArrowUp"
-    ){
-
-      moveY=-1;
-      player &&
-      (player.jet=true);
-
+      // Eye detail
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(player.x + 6, player.y - 4, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(player.x + 8, player.y - 4, 2, 0, Math.PI * 2);
+      ctx.fill();
     }
 
+    function gameLoop() {
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
 
-    if(
-      e.key===" "
-    )
+    function gameOver() {
+      gameActive = false;
+      startMenu.querySelector('h1').innerText = "Game Over";
+      startMenu.querySelector('p').innerText = `Score: ${score}`;
+      startMenu.querySelector('.btn').innerText = "Tap to Try Again";
+      startMenu.style.display = 'flex';
+    }
+
+    function startGame() {
+      resetGame();
+      gameActive = true;
+      startMenu.style.display = 'none';
+    }
+
+    // Controls
+    startMenu.addEventListener('click', startGame);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        if (!gameActive && startMenu.style.display !== 'none') {
+          startGame();
+        } else {
+          jump();
+        }
+      }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
       jump();
+    });
 
-
-    if(
-      e.key==="Enter"
-    )
-      shoot();
-
-  }
-);
-
-
-addEventListener(
-  "keyup",
-  e=>{
-
-    if(
-      e.key==="a" ||
-      e.key==="d" ||
-      e.key==="ArrowLeft" ||
-      e.key==="ArrowRight"
-    )
-      moveX=0;
-
-
-    if(
-      e.key==="w" ||
-      e.key==="ArrowUp"
-    ){
-
-      moveY=0;
-
-      if(player)
-        player.jet=false;
-
-    }
-
-  }
-);
-
-</script>
-
+    gameLoop();
+  </script>
 </body>
 </html>
