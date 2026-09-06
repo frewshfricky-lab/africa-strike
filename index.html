@@ -2,65 +2,93 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Chair Jump</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Militia - Web Edition</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       user-select: none;
-      -webkit-user-select: none;
     }
 
     body {
-      background-color: #1a1a24;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d0f12;
+      font-family: 'Arial Black', Gadget, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
-      color: #ffffff;
+      color: #fff;
     }
 
     #game-container {
       position: relative;
       width: 100%;
-      max-width: 420px;
-      height: 100vh;
-      max-height: 750px;
-      background: linear-gradient(180deg, #2d1b4e 0%, #1c1033 100%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      border-radius: 12px;
+      max-width: 900px;
+      height: 550px;
+      background: #1e272e;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      border-radius: 10px;
       overflow: hidden;
+      border: 3px solid #353b48;
     }
 
     canvas {
       display: block;
       width: 100%;
       height: 100%;
+      cursor: crosshair;
     }
 
     .ui-layer {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 15px;
+      left: 15px;
+      right: 15px;
       pointer-events: none;
       display: flex;
-      flex-direction: column;
       justify-content: space-between;
-      padding: 24px;
+      align-items: flex-start;
     }
 
-    .score-board {
+    .hud-box {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .bar-container {
+      width: 150px;
+      height: 12px;
+      background: #2f3640;
+      border-radius: 6px;
+      margin-top: 5px;
+      overflow: hidden;
+      border: 1px solid #000;
+    }
+
+    .bar-fill-hp {
+      width: 100%;
+      height: 100%;
+      background: #44bd32;
+      transition: width 0.1s;
+    }
+
+    .bar-fill-fuel {
+      width: 100%;
+      height: 100%;
+      background: #00a8ff;
+      transition: width 0.1s;
+    }
+
+    .level-title {
+      font-size: 24px;
+      color: #fbc531;
+      text-shadow: 2px 2px #000;
       text-align: center;
-      font-size: 38px;
-      font-weight: 800;
-      color: #ffd700;
-      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     }
 
     .overlay {
@@ -69,40 +97,46 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 10, 25, 0.85);
+      background: rgba(10, 15, 20, 0.88);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 20px;
-      pointer-events: auto;
-      cursor: pointer;
+      z-index: 10;
     }
 
     .overlay h1 {
-      font-size: 36px;
-      color: #ff4757;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      font-size: 42px;
+      color: #e1b12c;
+      text-shadow: 3px 3px #000;
+      margin-bottom: 10px;
     }
 
     .overlay p {
-      font-size: 18px;
-      color: #e0e0e0;
-      margin-bottom: 24px;
+      font-size: 16px;
+      color: #dcdde1;
+      margin-bottom: 25px;
+      max-width: 80%;
+      line-height: 1.5;
     }
 
     .btn {
-      background: linear-gradient(45deg, #ff4757, #ff6b81);
+      background: #44bd32;
       color: #fff;
-      padding: 14px 32px;
-      font-size: 18px;
+      padding: 14px 40px;
+      font-size: 20px;
       font-weight: bold;
       border: none;
       border-radius: 30px;
-      box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(68, 189, 50, 0.4);
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .btn:hover {
+      background: #4cd137;
+      transform: scale(1.05);
     }
   </style>
 </head>
@@ -110,223 +144,400 @@
 
   <div id="game-container">
     <canvas id="gameCanvas"></canvas>
+    
     <div class="ui-layer">
-      <div class="score-board" id="scoreDisplay">0</div>
+      <div class="hud-box">
+        <div style="font-size: 12px; color: #aaa;">HEALTH</div>
+        <div class="bar-container"><div id="hpBar" class="bar-fill-hp"></div></div>
+        <div style="font-size: 12px; color: #aaa; margin-top: 6px;">JETPACK FUEL</div>
+        <div class="bar-container"><div id="fuelBar" class="bar-fill-fuel"></div></div>
+      </div>
+
+      <div class="hud-box">
+        <div class="level-title" id="levelDisplay">STAGE 1</div>
+        <div style="font-size: 12px; color: #aaa; text-align: center; margin-top: 4px;" id="enemyCount">Enemies Remaining: 0</div>
+      </div>
     </div>
-    <div class="overlay" id="startMenu">
-      <h1>Mini Chair Jump</h1>
-      <p>Tap/Click to jump over incoming chairs!</p>
-      <div class="btn">Tap to Play</div>
+
+    <div class="overlay" id="menuOverlay">
+      <h1 id="menuTitle">MINI MILITIA 2D</h1>
+      <p id="menuDesc">
+        Controls:<br>
+        <b>A / D</b> or <b>Left/Right Arrows</b> - Walk<br>
+        <b>W</b> or <b>Up Arrow</b> - Jetpack Fly<br>
+        <b>Mouse</b> - Aim & Click to Shoot
+      </p>
+      <button class="btn" id="startBtn" onclick="startGame()">START WAR</button>
     </div>
   </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    const scoreDisplay = document.getElementById('scoreDisplay');
-    const startMenu = document.getElementById('startMenu');
 
-    let width, height;
-    function resize() {
-      const container = document.getElementById('game-container');
-      width = container.clientWidth;
-      height = container.clientHeight;
-      canvas.width = width;
-      canvas.height = height;
-    }
-    resize();
-    window.addEventListener('resize', resize);
+    const hpBar = document.getElementById('hpBar');
+    const fuelBar = document.getElementById('fuelBar');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const enemyCount = document.getElementById('enemyCount');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuTitle = document.getElementById('menuTitle');
+    const menuDesc = document.getElementById('menuDesc');
+    const startBtn = document.getElementById('startBtn');
 
-    // Game variables
+    const WIDTH = 900;
+    const HEIGHT = 550;
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+
+    // Game state variables
     let gameActive = false;
-    let score = 0;
-    let frameCount = 0;
-    let speed = 4;
-    let groundY = 0;
+    let currentLevel = 1;
+    let keys = {};
+    let mouse = { x: 0, y: 0, down: false };
 
+    // Player Object
     const player = {
-      x: 60,
-      y: 0,
-      radius: 18,
-      velocityY: 0,
-      gravity: 0.65,
-      jumpForce: -12,
-      isGrounded: false
+      x: 100,
+      y: 300,
+      radius: 16,
+      vx: 0,
+      vy: 0,
+      speed: 4,
+      hp: 100,
+      maxHp: 100,
+      fuel: 100,
+      maxFuel: 100,
+      isGrounded: false,
+      angle: 0
     };
 
-    let chairs = [];
+    let bullets = [];
+    let enemyBullets = [];
+    let enemies = [];
+    let particles = [];
 
-    function resetGame() {
-      groundY = height - 80;
-      player.y = groundY - player.radius;
-      player.velocityY = 0;
-      player.isGrounded = true;
-      chairs = [];
-      score = 0;
-      speed = 4.5;
-      frameCount = 0;
-      scoreDisplay.innerText = score;
+    // Map platforms
+    const platforms = [
+      { x: 0, y: 500, w: 900, h: 50 },          // Ground
+      { x: 150, y: 380, w: 180, h: 20 },        // Low Left
+      { x: 570, y: 380, w: 180, h: 20 },        // Low Right
+      { x: 360, y: 260, w: 180, h: 20 },        // Center High
+      { x: 50, y: 160, w: 150, h: 20 },         // Top Left
+      { x: 700, y: 160, w: 150, h: 20 }         // Top Right
+    ];
+
+    // Input Handlers
+    window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+    window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+
+    canvas.addEventListener('mousedown', () => {
+      mouse.down = true;
+      if (gameActive) shootPlayerBullet();
+    });
+
+    canvas.addEventListener('mouseup', () => mouse.down = false);
+
+    function startLevel(lvl) {
+      currentLevel = lvl;
+      levelDisplay.innerText = `STAGE ${currentLevel}`;
+      
+      // Reset player position & stats
+      player.x = 100;
+      player.y = 400;
+      player.vx = 0;
+      player.vy = 0;
+      player.hp = player.maxHp;
+      player.fuel = player.maxFuel;
+
+      bullets = [];
+      enemyBullets = [];
+      enemies = [];
+
+      // Spawn Enemies based on Level
+      const totalEnemies = 2 + lvl * 2;
+      for (let i = 0; i < totalEnemies; i++) {
+        enemies.push({
+          x: 400 + Math.random() * 450,
+          y: 100 + Math.random() * 300,
+          radius: 16,
+          vx: 0,
+          vy: 0,
+          hp: 40 + lvl * 15,
+          maxHp: 40 + lvl * 15,
+          shootTimer: Math.random() * 100
+        });
+      }
+
+      updateHUD();
     }
 
-    function spawnChair() {
-      const isTall = Math.random() > 0.5;
-      const chairWidth = 32;
-      const chairHeight = isTall ? 48 : 34;
-
-      chairs.push({
-        x: width + 20,
-        y: groundY - chairHeight,
-        width: chairWidth,
-        height: chairHeight,
-        passed: false
+    function shootPlayerBullet() {
+      const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+      bullets.push({
+        x: player.x + Math.cos(angle) * 20,
+        y: player.y + Math.sin(angle) * 20,
+        vx: Math.cos(angle) * 12,
+        vy: Math.sin(angle) * 12
       });
     }
 
-    function jump() {
-      if (player.isGrounded && gameActive) {
-        player.velocityY = player.jumpForce;
-        player.isGrounded = false;
-      }
+    function updateHUD() {
+      hpBar.style.width = `${Math.max(0, (player.hp / player.maxHp) * 100)}%`;
+      fuelBar.style.width = `${Math.max(0, (player.fuel / player.maxFuel) * 100)}%`;
+      enemyCount.innerText = `Enemies Remaining: ${enemies.length}`;
     }
 
-    function update() {
+    function spawnSmoke(x, y) {
+      particles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 2,
+        vy: Math.random() * 2 + 1,
+        life: 20, opacity: 0.6, radius: 4 + Math.random() * 4
+      });
+    }
+
+    function updatePhysics() {
       if (!gameActive) return;
 
-      frameCount++;
+      // Player Movement
+      if (keys['a'] || keys['arrowleft']) player.vx = -player.speed;
+      else if (keys['d'] || keys['arrowright']) player.vx = player.speed;
+      else player.vx *= 0.8;
 
-      // Increase speed gradually over time
-      if (frameCount % 400 === 0) {
-        speed += 0.3;
-      }
-
-      // Physics update
-      player.velocityY += player.gravity;
-      player.y += player.velocityY;
-
-      // Ground check
-      if (player.y >= groundY - player.radius) {
-        player.y = groundY - player.radius;
-        player.velocityY = 0;
-        player.isGrounded = true;
-      }
-
-      // Chair spawning timing
-      if (frameCount % Math.max(70, Math.floor(130 - speed * 5)) === 0) {
-        if (Math.random() > 0.2) spawnChair();
-      }
-
-      // Update chairs
-      for (let i = chairs.length - 1; i >= 0; i--) {
-        let c = chairs[i];
-        c.x -= speed;
-
-        // Score tracking
-        if (!c.passed && c.x + c.width < player.x) {
-          c.passed = true;
-          score++;
-          scoreDisplay.innerText = score;
-        }
-
-        // Collision detection (Circle to Box)
-        let closestX = Math.max(c.x, Math.min(player.x, c.x + c.width));
-        let closestY = Math.max(c.y, Math.min(player.y, c.y + c.height));
-        let distX = player.x - closestX;
-        let distY = player.y - closestY;
-        let distance = Math.sqrt((distX * distX) + (distY * distY));
-
-        if (distance < player.radius - 2) {
-          gameOver();
-        }
-
-        // Remove offscreen chairs
-        if (c.x + c.width < -50) {
-          chairs.splice(i, 1);
+      // Jetpack / Fly
+      if ((keys['w'] || keys['arrowup']) && player.fuel > 0) {
+        player.vy -= 0.6;
+        player.fuel -= 0.8;
+        spawnSmoke(player.x, player.y + player.radius);
+      } else {
+        player.vy += 0.35; // Gravity
+        if (player.isGrounded && player.fuel < player.maxFuel) {
+          player.fuel += 0.5; // Fuel Recharge
         }
       }
-    }
 
-    function drawChair(c) {
-      ctx.fillStyle = '#ff4757';
-      // Seat
-      ctx.fillRect(c.x, c.y + c.height * 0.4, c.width, 6);
-      // Backrest
-      ctx.fillRect(c.x + 2, c.y, 6, c.height * 0.4);
-      // Legs
-      ctx.fillRect(c.x + 2, c.y + c.height * 0.4, 4, c.height * 0.6);
-      ctx.fillRect(c.x + c.width - 6, c.y + c.height * 0.4, 4, c.height * 0.6);
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // Platform Collisions for Player
+      player.isGrounded = false;
+      platforms.forEach(p => {
+        if (player.x + player.radius > p.x && player.x - player.radius < p.x + p.w) {
+          if (player.y + player.radius >= p.y && player.y - player.radius < p.y + p.h) {
+            if (player.vy > 0 && player.y < p.y + p.h / 2) {
+              player.y = p.y - player.radius;
+              player.vy = 0;
+              player.isGrounded = true;
+            }
+          }
+        }
+      });
+
+      // Boundaries
+      if (player.x < player.radius) player.x = player.radius;
+      if (player.x > WIDTH - player.radius) player.x = WIDTH - player.radius;
+
+      // Player Angle to Mouse
+      player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+
+      // Player Bullets Update
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        let b = bullets[i];
+        b.x += b.vx;
+        b.y += b.vy;
+
+        // Hit Enemies
+        for (let j = enemies.length - 1; j >= 0; j--) {
+          let e = enemies[j];
+          let dist = Math.hypot(b.x - e.x, b.y - e.y);
+          if (dist < e.radius + 4) {
+            e.hp -= 20;
+            bullets.splice(i, 1);
+            if (e.hp <= 0) {
+              enemies.splice(j, 1);
+            }
+            updateHUD();
+            break;
+          }
+        }
+
+        // Remove Offscreen
+        if (b && (b.x < 0 || b.x > WIDTH || b.y < 0 || b.y > HEIGHT)) {
+          bullets.splice(i, 1);
+        }
+      }
+
+      // Enemies AI Update
+      enemies.forEach((e) => {
+        let dx = player.x - e.x;
+        let dy = player.y - e.y;
+        let dist = Math.hypot(dx, dy);
+
+        // Move towards player
+        if (dist > 150) {
+          e.vx = (dx / dist) * 1.8;
+          e.vy = (dy / dist) * 1.8;
+        } else {
+          e.vx *= 0.9;
+          e.vy *= 0.9;
+        }
+
+        e.x += e.vx;
+        e.y += e.vy;
+
+        // Enemy Shooting
+        e.shootTimer++;
+        if (e.shootTimer > 80) {
+          e.shootTimer = 0;
+          let angle = Math.atan2(player.y - e.y, player.x - e.x);
+          enemyBullets.push({
+            x: e.x, y: e.y,
+            vx: Math.cos(angle) * 6,
+            vy: Math.sin(angle) * 6
+          });
+        }
+      });
+
+      // Enemy Bullets Update
+      for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        let eb = enemyBullets[i];
+        eb.x += eb.vx;
+        eb.y += eb.vy;
+
+        // Hit Player
+        let dist = Math.hypot(eb.x - player.x, eb.y - player.y);
+        if (dist < player.radius + 4) {
+          player.hp -= 12;
+          enemyBullets.splice(i, 1);
+          updateHUD();
+
+          if (player.hp <= 0) {
+            gameOver(false);
+          }
+          continue;
+        }
+
+        if (eb.x < 0 || eb.x > WIDTH || eb.y < 0 || eb.y > HEIGHT) {
+          enemyBullets.splice(i, 1);
+        }
+      }
+
+      // Check Stage Clear
+      if (enemies.length === 0) {
+        startLevel(currentLevel + 1);
+      }
+
+      // Particles Update
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let pt = particles[i];
+        pt.y += pt.vy;
+        pt.x += pt.vx;
+        pt.life--;
+        if (pt.life <= 0) particles.splice(i, 1);
+      }
+
+      updateHUD();
     }
 
     function render() {
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-      // Draw Floor Line
-      ctx.strokeStyle = '#5352ed';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(0, groundY);
-      ctx.lineTo(width, groundY);
-      ctx.stroke();
+      // Draw Platforms
+      ctx.fillStyle = '#4b6584';
+      platforms.forEach(p => {
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.fillStyle = '#718093';
+        ctx.fillRect(p.x, p.y, p.w, 4); // Platform top edge
+        ctx.fillStyle = '#4b6584';
+      });
 
-      // Floor Fill
-      ctx.fillStyle = '#140c26';
-      ctx.fillRect(0, groundY, width, height - groundY);
-
-      // Draw Chairs
-      chairs.forEach(drawChair);
+      // Draw Particles
+      particles.forEach(pt => {
+        ctx.fillStyle = `rgba(200, 200, 200, ${pt.life / 20})`;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
 
       // Draw Player
-      ctx.fillStyle = '#2ed573';
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      // Body
+      ctx.fillStyle = '#44bd32';
       ctx.beginPath();
-      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
       ctx.fill();
+      // Gun
+      ctx.rotate(player.angle);
+      ctx.fillStyle = '#2f3640';
+      ctx.fillRect(0, -4, 22, 8);
+      ctx.restore();
 
-      // Eye detail
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(player.x + 6, player.y - 4, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(player.x + 8, player.y - 4, 2, 0, Math.PI * 2);
-      ctx.fill();
+      // Draw Enemies
+      enemies.forEach(e => {
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        let angle = Math.atan2(player.y - e.y, player.x - e.x);
+        // Body
+        ctx.fillStyle = '#e84118';
+        ctx.beginPath();
+        ctx.arc(0, 0, e.radius, 0, Math.PI * 2);
+        ctx.fill();
+        // Gun
+        ctx.rotate(angle);
+        ctx.fillStyle = '#2f3640';
+        ctx.fillRect(0, -4, 20, 8);
+        ctx.restore();
+
+        // Enemy Health Bar
+        ctx.fillStyle = 'red';
+        ctx.fillRect(e.x - 15, e.y - 25, 30, 4);
+        ctx.fillStyle = 'green';
+        ctx.fillRect(e.x - 15, e.y - 25, (e.hp / e.maxHp) * 30, 4);
+      });
+
+      // Draw Player Bullets
+      ctx.fillStyle = '#fbc531';
+      bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw Enemy Bullets
+      ctx.fillStyle = '#e84118';
+      enemyBullets.forEach(eb => {
+        ctx.beginPath();
+        ctx.arc(eb.x, eb.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
     }
 
     function gameLoop() {
-      update();
+      updatePhysics();
       render();
       requestAnimationFrame(gameLoop);
     }
 
-    function gameOver() {
+    function gameOver(win) {
       gameActive = false;
-      startMenu.querySelector('h1').innerText = "Game Over";
-      startMenu.querySelector('p').innerText = `Score: ${score}`;
-      startMenu.querySelector('.btn').innerText = "Tap to Try Again";
-      startMenu.style.display = 'flex';
+      menuOverlay.style.display = 'flex';
+      menuTitle.innerText = win ? "VICTORY!" : "DEFEATED!";
+      menuDesc.innerText = win ? "You cleared all army levels!" : `You survived until Stage ${currentLevel}.`;
+      startBtn.innerText = "RESTART WAR";
     }
 
     function startGame() {
-      resetGame();
+      menuOverlay.style.display = 'none';
       gameActive = true;
-      startMenu.style.display = 'none';
+      startLevel(1);
     }
-
-    // Controls
-    startMenu.addEventListener('click', startGame);
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
-        if (!gameActive && startMenu.style.display !== 'none') {
-          startGame();
-        } else {
-          jump();
-        }
-      }
-    });
-
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      jump();
-    });
 
     gameLoop();
   </script>
